@@ -46,9 +46,9 @@ RTL8723AU | RTL8723BU
 
 ### Note
 
-Supported linux kernel version: 6.0.x ~ 6.3.x
+Supported linux kernel version: 6.0.x ~ 6.4.x
 
-Tested on Debian 11.6 (kernel version: 6.1.0-0.deb11.6-amd64) and it works fine.
+Tested on Debian 11.7 (kernel version: 6.1.0-0.deb11.7-amd64) and it works fine.
 
 Thanks to all the maintainers of this kernel module!
 
