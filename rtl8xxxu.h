@@ -6,6 +6,7 @@
  */
 
 #include <asm/byteorder.h>
+#include <linux/bitfield.h>
 
 #define RTL8XXXU_DEBUG_REG_WRITE	0x01
 #define RTL8XXXU_DEBUG_REG_READ		0x02
@@ -1321,7 +1322,6 @@ struct rtl8xxxu_rfregs {
 #define H2C_EXT				BIT(7)
 #define  H2C_JOIN_BSS_DISCONNECT	0
 #define  H2C_JOIN_BSS_CONNECT		1
-
 #define H2C_MACID_ROLE_STA		1
 #define H2C_MACID_ROLE_AP		2
 

@@ -38,15 +38,15 @@ RTL8723AU | RTL8723BU
 
 4. Install firmware for RTL8188EU/RTL8188FU/RTL8188GU/RTL8192EU/RTL8192FU chips (Optional)
 
-   $ sudo make install_fw
+   `sudo make install_fw`
 
 5. Load the module
 
-   $ sudo modprobe rtl8xxxu_git
+   `sudo modprobe rtl8xxxu_git`
 
 ### Note
 
-Supported linux kernel version: 6.0.x ~ 6.4.x
+Supported linux kernel version: 5.14.x ~ 6.4.x
 
 Tested on Debian 11.7 (kernel version: 6.1.0-0.deb11.7-amd64) and it works fine.
 

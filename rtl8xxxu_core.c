@@ -4853,22 +4853,41 @@ rtl8xxxu_wireless_mode(struct ieee80211_hw *hw, struct ieee80211_sta *sta)
 	u16 network_type = WIRELESS_MODE_UNKNOWN;
 
 	if (hw->conf.chandef.chan->band == NL80211_BAND_5GHZ) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 		if (sta->deflink.vht_cap.vht_supported)
 			network_type = WIRELESS_MODE_AC;
 		else if (sta->deflink.ht_cap.ht_supported)
 			network_type = WIRELESS_MODE_N_5G;
-
+#else
+		if (sta->vht_cap.vht_supported)
+			network_type = WIRELESS_MODE_AC;
+		else if (sta->ht_cap.ht_supported)
+			network_type = WIRELESS_MODE_N_5G;
+#endif
 		network_type |= WIRELESS_MODE_A;
 	} else {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 		if (sta->deflink.vht_cap.vht_supported)
 			network_type = WIRELESS_MODE_AC;
 		else if (sta->deflink.ht_cap.ht_supported)
 			network_type = WIRELESS_MODE_N_24G;
-
+#else
+		if (sta->vht_cap.vht_supported)
+			network_type = WIRELESS_MODE_AC;
+		else if (sta->ht_cap.ht_supported)
+			network_type = WIRELESS_MODE_N_24G;
+#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 		if (sta->deflink.supp_rates[0] <= 0xf)
 			network_type |= WIRELESS_MODE_B;
 		else if (sta->deflink.supp_rates[0] & 0xf)
 			network_type |= (WIRELESS_MODE_B | WIRELESS_MODE_G);
+#else
+		if (sta->supp_rates[0] <= 0xf)
+			network_type |= WIRELESS_MODE_B;
+		else if (sta->supp_rates[0] & 0xf)
+			network_type |= (WIRELESS_MODE_B | WIRELESS_MODE_G);
+#endif
 		else
 			network_type |= WIRELESS_MODE_G;
 	}
@@ -4951,7 +4970,11 @@ void rtl8xxxu_update_ra_report(struct rtl8xxxu_ra_report *rarpt,
 
 static void
 rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 			  struct ieee80211_bss_conf *bss_conf, u64 changed)
+#else
+			  struct ieee80211_bss_conf *bss_conf, u32 changed)
+#endif
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	struct device *dev = &priv->udev->dev;
@@ -4963,11 +4986,19 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	rarpt = &priv->ra_report;
 
 	if (changed & BSS_CHANGED_ASSOC) {
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 		dev_dbg(dev, "Changed ASSOC: %i!\n", vif->cfg.assoc);
+#else
+		dev_dbg(dev, "Changed ASSOC: %i!\n", vif->bss_conf.assoc);
+#endif
 
 		rtl8xxxu_set_linktype(priv, vif->type);
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 		if (vif->cfg.assoc) {
+#else
+		if (vif->bss_conf.assoc) {
+#endif
 			u32 ramask;
 			int sgi = 0;
 			u8 highest_rate;
@@ -4982,22 +5013,39 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 				goto error;
 			}
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 			if (sta->deflink.ht_cap.ht_supported)
 				dev_info(dev, "%s: HT supported\n", __func__);
 			if (sta->deflink.vht_cap.vht_supported)
 				dev_info(dev, "%s: VHT supported\n", __func__);
-
+#else
+			if (sta->ht_cap.ht_supported)
+				dev_info(dev, "%s: HT supported\n", __func__);
+			if (sta->vht_cap.vht_supported)
+				dev_info(dev, "%s: VHT supported\n", __func__);
+#endif
 			/* TODO: Set bits 28-31 for rate adaptive id */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 			ramask = (sta->deflink.supp_rates[0] & 0xfff) |
 				sta->deflink.ht_cap.mcs.rx_mask[0] << 12 |
 				sta->deflink.ht_cap.mcs.rx_mask[1] << 20;
 			if (sta->deflink.ht_cap.cap &
+#else
+			ramask = (sta->supp_rates[0] & 0xfff) |
+				sta->ht_cap.mcs.rx_mask[0] << 12 |
+				sta->ht_cap.mcs.rx_mask[1] << 20;
+			if (sta->ht_cap.cap &
+#endif
 			    (IEEE80211_HT_CAP_SGI_40 | IEEE80211_HT_CAP_SGI_20))
 				sgi = 1;
 
 			highest_rate = fls(ramask) - 1;
 			if (rtl8xxxu_ht40_2g &&
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 			    (sta->deflink.ht_cap.cap & IEEE80211_HT_CAP_SUP_WIDTH_20_40))
+#else
+			    (sta->ht_cap.cap & IEEE80211_HT_CAP_SUP_WIDTH_20_40))
+#endif
 				bw = RATE_INFO_BW_40;
 			else
 				bw = RATE_INFO_BW_20;
@@ -5017,7 +5065,11 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 			/* joinbss sequence */
 			rtl8xxxu_write16(priv, REG_BCN_PSR_RPT,
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 					 0xc000 | vif->cfg.aid);
+#else
+					 0xc000 | vif->bss_conf.aid);
+#endif
 
 			priv->fops->report_connect(priv, 0, H2C_MACID_ROLE_AP, true);
 		} else {
@@ -5077,8 +5129,12 @@ error:
 	return;
 }
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 static int rtl8xxxu_start_ap(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 			     struct ieee80211_bss_conf *link_conf)
+#else
+static int rtl8xxxu_start_ap(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
+#endif
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	struct device *dev = &priv->udev->dev;
@@ -5398,7 +5454,6 @@ rtl8xxxu_fill_txdesc_v2(struct ieee80211_hw *hw, struct ieee80211_hdr *hdr,
 		tx_desc40->txdw5 |= cpu_to_le32(TXDESC40_SHORT_PREAMBLE);
 
 	tx_desc40->txdw4 |= cpu_to_le32(rts_rate << TXDESC40_RTS_RATE_SHIFT);
-
 	/*
 	 * rts_rate is zero if RTS/CTS or CTS to SELF are not enabled
 	 */
@@ -5581,12 +5636,20 @@ static void rtl8xxxu_tx(struct ieee80211_hw *hw,
 	/* (tx_info->flags & IEEE80211_TX_CTL_AMPDU) && */
 	ampdu_enable = false;
 	if (ieee80211_is_data_qos(hdr->frame_control) && sta) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 		if (sta->deflink.ht_cap.ht_supported) {
+#else
+		if (sta->ht_cap.ht_supported) {
+#endif
 			u32 ampdu, val32;
 			u8 *qc = ieee80211_get_qos_ctl(hdr);
 			u8 tid = qc[0] & IEEE80211_QOS_CTL_TID_MASK;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 			ampdu = (u32)sta->deflink.ht_cap.ampdu_density;
+#else
+			ampdu = (u32)sta->ht_cap.ampdu_density;
+#endif
 			val32 = ampdu << TXDESC_AMPDU_DENSITY_SHIFT;
 			tx_desc->txdw2 |= cpu_to_le32(val32);
 
@@ -5600,7 +5663,11 @@ static void rtl8xxxu_tx(struct ieee80211_hw *hw,
 	}
 
 	if (ieee80211_is_data_qos(hdr->frame_control) &&
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 	    sta && sta->deflink.ht_cap.cap &
+#else
+	    sta && sta->ht_cap.cap &
+#endif
 	    (IEEE80211_HT_CAP_SGI_40 | IEEE80211_HT_CAP_SGI_20))
 		sgi = true;
 
@@ -5648,7 +5715,11 @@ static void rtl8xxxu_send_beacon_frame(struct ieee80211_hw *hw,
 				       struct ieee80211_vif *vif)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 	struct sk_buff *skb = ieee80211_beacon_get(hw, vif, 0);
+#else
+	struct sk_buff *skb = ieee80211_beacon_get(hw, vif);
+#endif
 	struct device *dev = &priv->udev->dev;
 	int retry;
 	u8 val8;
@@ -5711,7 +5782,11 @@ void rtl8723au_rx_parse_phystats(struct rtl8xxxu_priv *priv,
 		bool parse_cfo = priv->fops->set_crystal_cap &&
 				 priv->vif &&
 				 priv->vif->type == NL80211_IFTYPE_STATION &&
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 				 priv->vif->cfg.assoc &&
+#else
+				 priv->vif->bss_conf.assoc &&
+#endif
 				 !crc_icv_err &&
 				 !ieee80211_is_ctl(hdr->frame_control) &&
 				 ether_addr_equal(priv->vif->bss_conf.bssid, hdr->addr2);
@@ -5751,7 +5826,11 @@ static void jaguar2_rx_parse_phystats_type1(struct rtl8xxxu_priv *priv,
 	bool parse_cfo = priv->fops->set_crystal_cap &&
 			 priv->vif &&
 			 priv->vif->type == NL80211_IFTYPE_STATION &&
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 			 priv->vif->cfg.assoc &&
+#else
+			 priv->vif->bss_conf.assoc &&
+#endif
 			 !crc_icv_err &&
 			 !ieee80211_is_ctl(hdr->frame_control) &&
 			 ether_addr_equal(priv->vif->bss_conf.bssid, hdr->addr2);
@@ -6039,7 +6118,11 @@ void rtl8723bu_handle_bt_inquiry(struct rtl8xxxu_priv *priv)
 
 	vif = priv->vif;
 	btcoex = &priv->bt_coex;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 	wifi_connected = (vif && vif->cfg.assoc);
+#else
+	wifi_connected = (vif && vif->bss_conf.assoc);
+#endif
 
 	if (!wifi_connected) {
 		rtl8723bu_set_ps_tdma(priv, 0x8, 0x0, 0x0, 0x0, 0x0);
@@ -6065,7 +6148,11 @@ void rtl8723bu_handle_bt_info(struct rtl8xxxu_priv *priv)
 
 	vif = priv->vif;
 	btcoex = &priv->bt_coex;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 	wifi_connected = (vif && vif->cfg.assoc);
+#else
+	wifi_connected = (vif && vif->bss_conf.assoc);
+#endif
 
 	if (wifi_connected) {
 		u32 val32 = 0;
@@ -6668,7 +6755,11 @@ exit:
 
 static int rtl8xxxu_conf_tx(struct ieee80211_hw *hw,
 			    struct ieee80211_vif *vif,
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 			    unsigned int link_id, u16 queue,
+#else
+			    u16 queue,
+#endif
 			    const struct ieee80211_tx_queue_params *param)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
@@ -6759,7 +6850,6 @@ static void rtl8xxxu_configure_filter(struct ieee80211_hw *hw,
 		rcr |= RCR_ACCEPT_AP;
 	else
 		rcr &= ~RCR_ACCEPT_AP;
-
 	if (*total_flags & FIF_PSPOLL)
 		rcr |= RCR_ACCEPT_PM;
 	else
@@ -6874,8 +6964,13 @@ rtl8xxxu_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	switch (action) {
 	case IEEE80211_AMPDU_TX_START:
 		dev_dbg(dev, "%s: IEEE80211_AMPDU_TX_START\n", __func__);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 		ampdu_factor = sta->deflink.ht_cap.ampdu_factor;
 		ampdu_density = sta->deflink.ht_cap.ampdu_density;
+#else
+		ampdu_factor = sta->ht_cap.ampdu_factor;
+		ampdu_density = sta->ht_cap.ampdu_density;
+#endif
 		rtl8xxxu_set_ampdu_factor(priv, ampdu_factor);
 		rtl8xxxu_set_ampdu_min_space(priv, ampdu_density);
 		dev_dbg(dev,
@@ -6969,10 +7064,17 @@ static void rtl8xxxu_refresh_rate_mask(struct rtl8xxxu_priv *priv,
 		u32 rate_bitmap = 0;
 
 		rcu_read_lock();
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
 		rate_bitmap = (sta->deflink.supp_rates[0] & 0xfff) |
 				(sta->deflink.ht_cap.mcs.rx_mask[0] << 12) |
 				(sta->deflink.ht_cap.mcs.rx_mask[1] << 20);
 		if (sta->deflink.ht_cap.cap &
+#else
+		rate_bitmap = (sta->supp_rates[0] & 0xfff) |
+				(sta->ht_cap.mcs.rx_mask[0] << 12) |
+				(sta->ht_cap.mcs.rx_mask[1] << 20);
+		if (sta->ht_cap.cap &
+#endif
 		    (IEEE80211_HT_CAP_SGI_40 | IEEE80211_HT_CAP_SGI_20))
 			sgi = 1;
 		rcu_read_unlock();
@@ -7086,7 +7188,11 @@ static void rtl8xxxu_track_cfo(struct rtl8xxxu_priv *priv)
 	int cfo_khz_a, cfo_khz_b, cfo_average;
 	int crystal_cap;
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 	if (!priv->vif || !priv->vif->cfg.assoc) {
+#else
+	if (!priv->vif || !priv->vif->bss_conf.assoc) {
+#endif
 		/* Reset */
 		cfo->adjust = true;
 
