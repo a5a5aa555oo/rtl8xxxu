@@ -13,7 +13,6 @@
  * additional 8xxx chips like the 8192cu, 8188cus, etc.
  */
 
-#include <linux/version.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/sched.h>
