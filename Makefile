@@ -20,7 +20,7 @@ MODCONF := /etc/modprobe.d/rtl8xxxu_git.conf
 .PHONY: modules clean install install_fw uninstall
 
 modules:
-	$(MAKE) -C $(KDIR) M=$$PWD modules
+	$(MAKE) -j`nproc` -C $(KDIR) M=$$PWD modules
 
 clean:
 	$(MAKE) -C $(KDIR) M=$$PWD clean

@@ -1,6 +1,6 @@
 ### Linux Kernel Module "rtl8xxxu"
 
-Driver for Realtek RTL8XXXXU usb wifi chips, which is backported from linux mainline
+Driver for Realtek 802.11n USB wireless chips, which is backported from linux mainline
 <details>
 <summary>Click here to display a list of supported chips</summary>
 <pre><code>
@@ -16,9 +16,9 @@ RTL8723AU | RTL8723BU
 
 ### How To Use
 
-1. If your usb wifi dongle uses a RTL8188GU or RTL8192FU chip, you may need to
+1. If your usb wifi adapter is based on a RTL8188GU or RTL8192FU chip, you may need to
 
-   switch it to "Wifi Mode" first by using the "usb_modeswitch" or "eject" command
+   use the command `usb_modeswitch` or `eject` to switch it to "Wifi Mode" first
 
 2. Install gcc, make, linux-headers and other packages required to build this module
 
@@ -34,7 +34,7 @@ RTL8723AU | RTL8723BU
 
    * _For Arch-based Linux distro users_
 
-     Install [rtl8xxxu-dkms-git](https://aur.archlinux.org/packages/rtl8xxxu-dkms-git) package from AUR.
+     Install the [rtl8xxxu-dkms-git](https://aur.archlinux.org/packages/rtl8xxxu-dkms-git) package from AUR.
 
 4. Install firmware for RTL8188EU/RTL8188FU/RTL8188GU/RTL8192EU/RTL8192FU chips (Optional)
 
@@ -46,13 +46,15 @@ RTL8723AU | RTL8723BU
 
 ### Note
 
-Supported linux kernel version: 5.5.x ~ 6.5.x
+Supported linux kernel version: 5.5.x ~ 6.6.x
 
 Tested on the following linux distros and it works fine.
 
-* Debian 11.7 (kernel version: 5.10.0-24-amd64 / 6.1.0-0.deb11.7-amd64)
+* Arch Linux  (kernel version: 6.1.52-1-lts)
 
-* Ubuntu 20.04 (kernel version: 5.15.0-78-generic)
+* Debian 11.7 (kernel version: 5.10.0-25-amd64)
+
+* Linux Mint 20.3 (kernel version: 5.15.0-83-generic)
 
 Thanks to all the maintainers of this kernel module!
 
