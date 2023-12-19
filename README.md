@@ -28,7 +28,7 @@ RTL8723AU | RTL8723BU
 
      `make clean modules && sudo make install`
 
-   * _In a DKMS way_
+   * _In a DKMS way **(Recommended)**_
 
      `sudo dkms install $PWD`
 
@@ -46,15 +46,15 @@ RTL8723AU | RTL8723BU
 
 ### Note
 
-Supported linux kernel version: 5.5.x ~ 6.6.x
+Supported linux kernel version: 5.5.x ~ 6.7.x
 
 Tested on the following linux distros and it works fine.
 
-* Arch Linux  (kernel version: 6.1.52-1-lts)
+* Arch Linux  (kernel version: 6.1.68-1-lts)
 
-* Debian 11.7 (kernel version: 5.10.0-25-amd64)
+* Debian 11.7 (kernel version: 5.10.0-26-amd64)
 
-* Linux Mint 20.3 (kernel version: 5.15.0-83-generic)
+* Linux Mint 20.3 (kernel version: 5.15.0-91-generic)
 
 Thanks to all the maintainers of this kernel module!
 
