@@ -20,7 +20,7 @@ RTL8723AU | RTL8723BU
 
    use the command `usb_modeswitch` or `eject` to switch it to "Wifi Mode" first
 
-2. Install gcc, make, linux-headers and other packages required to build this module
+2. Install gcc, make, linux-headers, dkms and other packages required to build this module
 
 3. Build and install the module 
 
@@ -50,9 +50,9 @@ Supported linux kernel version: 5.5.x ~ 6.7.x
 
 Tested on the following linux distros and it works fine.
 
-* Arch Linux  (kernel version: 6.1.68-1-lts)
+* Arch Linux  (kernel version: 6.6.11-1-lts)
 
-* Debian 11.7 (kernel version: 5.10.0-26-amd64)
+* Debian 11.8 (kernel version: 5.10.0-27-amd64 / 6.1.0-0.deb11.13-amd64)
 
 * Linux Mint 20.3 (kernel version: 5.15.0-91-generic)
 
