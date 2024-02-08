@@ -50,7 +50,7 @@ Supported linux kernel version: 5.5.x ~ 6.8.x
 
 Tested on the following linux distros and it works fine.
 
-* Arch Linux  (kernel version: 6.6.15-2-lts)
+* Arch Linux  (kernel version: 6.6.16-1-lts)
 
 * Debian 11.8 (kernel version: 5.10.0-27-amd64 / 6.1.0-0.deb11.13-amd64)
 
