@@ -5828,7 +5828,12 @@ static void rtl8xxxu_update_beacon_work_callback(struct work_struct *work)
 #else
 		if (ieee80211_csa_is_complete(vif)) {
 #endif
+
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0))
+			ieee80211_csa_finish(vif, 0);
+#else
 			ieee80211_csa_finish(vif);
+#endif
 			return;
 		}
 		schedule_delayed_work(&priv->update_beacon_work,
