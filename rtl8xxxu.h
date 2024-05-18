@@ -5,8 +5,9 @@
  * Register definitions taken from original Realtek rtl8723au driver
  */
 
-#include <asm/byteorder.h>
 #include <linux/average.h>
+#include <linux/usb.h>
+#include <net/mac80211.h>
 #include <linux/version.h>
 #include <linux/bitfield.h>
 #include <linux/leds.h>
