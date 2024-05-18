@@ -4,9 +4,9 @@ ifneq ($(KERNELRELEASE),)
 
 obj-m	:= rtl8xxxu_git.o
 
-rtl8xxxu_git-y	:= rtl8xxxu_core.o rtl8xxxu_8192e.o rtl8xxxu_8723b.o \
-		   rtl8xxxu_8723a.o rtl8xxxu_8192c.o rtl8xxxu_8188f.o \
-		   rtl8xxxu_8188e.o rtl8xxxu_8710b.o rtl8xxxu_8192f.o
+rtl8xxxu_git-y	:= core.o 8192e.o 8723b.o \
+		   8723a.o 8192c.o 8188f.o \
+		   8188e.o 8710b.o 8192f.o
 
 else
 
