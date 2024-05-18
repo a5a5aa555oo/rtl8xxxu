@@ -5823,7 +5823,9 @@ static void rtl8xxxu_update_beacon_work_callback(struct work_struct *work)
 	if (vif->csa_active) {
 #endif
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0))
+		if (ieee80211_beacon_cntdwn_is_complete(vif, 0)) {
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0))
 		if (ieee80211_beacon_cntdwn_is_complete(vif)) {
 #else
 		if (ieee80211_csa_is_complete(vif)) {
