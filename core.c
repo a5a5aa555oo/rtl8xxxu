@@ -7647,7 +7647,11 @@ error_out:
 	return ret;
 }
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0))
+static void rtl8xxxu_stop(struct ieee80211_hw *hw, bool suspend)
+#else
 static void rtl8xxxu_stop(struct ieee80211_hw *hw)
+#endif
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	unsigned long flags;
