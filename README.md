@@ -46,15 +46,15 @@ RTL8723AU | RTL8723BU
 
 ### Note
 
-Supported linux kernel version: 5.5.x ~ 6.12.x
+Supported linux kernel version: 5.5.x ~ 6.13.x
 
 Tested on the following linux distros and it works fine.
 
-* Arch Linux  (kernel version: 6.6.51-1-lts)
+* Arch Linux  (kernel version: 6.6.62-1-lts)
 
-* Debian 11.10 (kernel version: 5.10.0-32-amd64 / 6.1.0-0.deb11.21-amd64)
+* Debian 11.10 (kernel version: 5.10.0-33-amd64 / 6.1.0-0.deb11.21-amd64)
 
-* Linux Mint 20.3 (kernel version: 5.15.0-122-generic)
+* Linux Mint 20.3 (kernel version: 5.15.0-124-generic)
 
 Thanks to all the maintainers of this kernel module!
 
