@@ -1,9 +1,5 @@
 #! /bin/sh
 
-BLCONF="/etc/modprobe.d/blacklist-rtl8xxxu.conf"
-MODCONF="/etc/modprobe.d/rtl8xxxu_git.conf"
-
-echo "blacklist rtl8xxxu" > ${BLCONF}
-echo "options rtl8xxxu_git ht40_2g=1" > ${MODCONF}
+install -Dm 644 -t /etc/modprobe.d rtl8xxxu_git.conf
 
 exit 0
