@@ -8,7 +8,7 @@ rtl8xxxu_git-y	:= core.o 8192e.o 8723b.o \
 		   8723a.o 8192c.o 8188f.o \
 		   8188e.o 8710b.o 8192f.o
 
-ccflags-y += -DCONFIG_RTL8XXXU_UNTESTED
+ccflags-y += -DCONFIG_RTL8XXXU_UNTESTED -std=gnu11
 
 else
 
