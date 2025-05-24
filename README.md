@@ -1,4 +1,4 @@
-### Linux Kernel Module "rtl8xxxu"
+## Linux Kernel Module "rtl8xxxu"
 
 Driver for Realtek 802.11n USB wireless chips, which is backported from linux mainline
 <details>
@@ -14,50 +14,156 @@ RTL8723AU | RTL8723BU
 </code></pre>
 </details>
 
-### How To Use
+## Prerequisites
 
-1. If your usb wifi adapter is based on a RTL8188GU or RTL8192FU chip, you may need to
+git, make, gcc, kernel-headers, dkms and mokutil (dkms and mokutil are optional.)
 
-   use the command `usb_modeswitch` or `eject` to switch it to "Wifi Mode" first
+## Installation Guide
 
-2. Install gcc, make, linux-headers, dkms and other packages required to build this module
+1. If your USB Wi-Fi adapter is based on a RTL8188GU or RTL8192FU chip and you see the adapter is in "Driver CDROM Mode" when running `lsusb`, you need to install `usb_modeswitch` or use the command `eject` to switch it to "Wi-Fi Mode" first.
 
-3. Build and install the module 
+2. Create a clone of this repo in your local machine
 
-   * _In a traditional way_
+   ```
+   git clone https://github.com/a5a5aa555oo/rtl8xxxu
+   ```
 
-     `make clean modules && sudo make install`
+3. Change the working directory to `rtl8xxxu`
 
-   * _In a DKMS way **(Recommended)**_
+   ```
+   cd rtl8xxxu
+   ```
 
-     `sudo dkms install $PWD`
+4. Build and install the module 
 
-   * _For Arch-based Linux distro users_
+   * _via DKMS (Recommended especially Secure Boot is enabled on your system)_ 
 
-     Install the [rtl8xxxu-dkms-git](https://aur.archlinux.org/packages/rtl8xxxu-dkms-git) package from AUR.
+   ```
+   sudo dkms install $PWD
+   ```
 
-4. Install firmware for RTL8188EU/RTL8188FU/RTL8188GU/RTL8192EU/RTL8192FU chips (Optional)
+   * _via make_
 
-   `sudo make install_fw`
+   ```
+   make clean modules && sudo make install
+   ```
 
-5. Load the module
+5. Install the firmware files necessary for the driver
 
-   `sudo modprobe rtl8xxxu_git`
+   ```
+   sudo make install_fw
+   ```
 
-### Note
+6. Copy the configuration file `rtl8xxxu_git.conf` to /etc/modprobe.d/
 
-Supported linux kernel version: 5.5.x ~ 6.14.x
+   ```
+   sudo cp rtl8xxxu_git.conf /etc/modprobe.d/
+   ```
 
-Tested with RTL8192EU on the following linux distros and it works fine.
+7. Enroll the MOK (Machine Owner Key). This is needed **ONLY IF** [Secure Boot](https://wiki.debian.org/SecureBoot) is enabled on your system. Please see [this guide](https://github.com/dell/dkms?tab=readme-ov-file#secure-boot) for details.
+
+   ```
+   sudo mokutil --import /var/lib/dkms/mok.pub
+   ```
+
+   For Ubuntu-based distro users, run this command instead.
+
+   ```
+   sudo mokutil --import /var/lib/shim-signed/mok/MOK.der
+   ```
+
+## Uninstallation Guide
+
+For users who installed this driver via DKMS:
+
+1. Check the version of rtl8xxxu driver installed on your system.
+
+```
+sudo dkms status rtl8xxxu
+```
+
+2. Remove the driver and its source code (Change the version accordingly)
+
+```
+sudo dkms remove rtl8xxxu/6.15 --all
+```
+
+```
+sudo rm -rf /usr/src/rtl8xxxu-6.15
+```
+
+3. Delete the configuration file `rtl8xxxu_git.conf`
+
+```
+sudo rm -f /etc/modprobe.d/rtl8xxxu_git.conf
+```
+
+For users who installed this driver via make, run these commands in the rtl8xxxu source directory.
+
+```
+sudo make uninstall
+```
+
+```
+sudo rm -f /etc/modprobe.d/rtl8xxxu_git.conf
+```
+
+## Note
+
+Supported linux kernel version: 5.4.x ~ 6.15.x
+
+Tested with RTL8192EU on the following linux distros and it works.
 
 * Arch Linux  (kernel version: 6.12.12-1-lts / 6.6.62-1-lts)
 
 * Debian 11.10 (kernel version: 5.10.0-33-amd64 / 6.1.0-0.deb11.21-amd64)
 
-* Linux Mint 20.3 (kernel version: 5.15.0-124-generic)
+* Linux Mint 20.3 (kernel version: 5.4.0-216-generic / 5.15.0-139-generic)
 
 Thanks to all the maintainers of this kernel module!
 
-### WARNING
+## Q&A
 
-No warranty, use at your own risk. :warning:
+Q1. How to update the driver installed via `dkms`?
+
+1. Check the version of the driver installed on your system.
+
+```
+sudo dkms status rtl8xxxu
+```
+
+2. Remove the driver and its source code (Change the version accordingly)
+
+```
+sudo dkms remove rtl8xxxu/6.15 --all
+```
+
+```
+sudo rm -rf /usr/src/rtl8xxxu-6.15
+```
+
+3. Run this command in the rtl8xxxu source directory to pull the latest code
+
+```
+git pull
+```
+
+4. Build and install the driver from the latest code
+
+```
+sudo dkms install $PWD
+```
+
+Q2. How to update the driver installed via `make`?
+
+1. Run this command in the rtl8xxxu source directory to pull the latest code
+
+```
+git pull
+```
+
+2. Rebuild and reinstall the driver from the latest code
+
+```
+make clean modules && sudo make install
+```
