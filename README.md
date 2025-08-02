@@ -110,7 +110,7 @@ sudo rm -f /etc/modprobe.d/rtl8xxxu_git.conf
 
 ## Note
 
-Supported linux kernel version: 5.4.x ~ 6.15.x
+Supported linux kernel version: 5.4.x ~ 6.16.x
 
 Tested with RTL8192EU on the following linux distros and it works.
 
