@@ -4552,7 +4552,12 @@ static void rtl8xxxu_cam_write(struct rtl8xxxu_priv *priv,
 }
 
 static
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 17, 0)
 int rtl8xxxu_get_antenna(struct ieee80211_hw *hw, u32 *tx_ant, u32 *rx_ant)
+#else
+int rtl8xxxu_get_antenna(struct ieee80211_hw *hw, int radio_idx, u32 *tx_ant,
+			 u32 *rx_ant)
+#endif
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 
@@ -6950,7 +6955,11 @@ static void rtl8xxxu_remove_interface(struct ieee80211_hw *hw,
 	priv->vifs[rtlvif->port_num] = NULL;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 17, 0)
 static int rtl8xxxu_config(struct ieee80211_hw *hw, u32 changed)
+#else
+static int rtl8xxxu_config(struct ieee80211_hw *hw, int radio_idx, u32 changed)
+#endif
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	struct device *dev = &priv->udev->dev;
@@ -7106,7 +7115,12 @@ static void rtl8xxxu_configure_filter(struct ieee80211_hw *hw,
 			 FIF_PROBE_REQ);
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 17, 0)
 static int rtl8xxxu_set_rts_threshold(struct ieee80211_hw *hw, u32 rts)
+#else
+static int rtl8xxxu_set_rts_threshold(struct ieee80211_hw *hw, int radio_idx,
+				      u32 rts)
+#endif
 {
 	if (rts > 2347 && rts != (u32)-1)
 		return -EINVAL;
