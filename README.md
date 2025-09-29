@@ -20,7 +20,7 @@ git, make, gcc, kernel-headers, dkms and mokutil (dkms and mokutil are optional.
 
 ## Installation Guide
 
-1. If your USB Wi-Fi adapter is based on a RTL8188GU or RTL8192FU chip and you see the adapter is in "Driver CDROM Mode" when running `lsusb`, you need to install `usb_modeswitch` or use the command `eject` to switch it to "Wi-Fi Mode" first.
+1. If your USB Wi-Fi adapter is based on a RTL8188GU or RTL8192FU chip and you see the adapter is in "Driver CDROM Mode" when running `lsusb`, you need to install `usb_modeswitch`, a tool that can switch your Wi-Fi adapter to Wi-Fi mode.
 
 2. Create a clone of this repo in your local machine
 
@@ -36,7 +36,7 @@ git, make, gcc, kernel-headers, dkms and mokutil (dkms and mokutil are optional.
 
 4. Build and install the module 
 
-   * _via DKMS (Recommended especially Secure Boot is enabled on your system)_ 
+   * _via DKMS (Recommended especially Secure Boot is enabled in your system)_ 
 
    ```
    sudo dkms install $PWD
@@ -60,7 +60,7 @@ git, make, gcc, kernel-headers, dkms and mokutil (dkms and mokutil are optional.
    sudo cp rtl8xxxu_git.conf /etc/modprobe.d/
    ```
 
-7. Enroll the MOK (Machine Owner Key). This is needed **ONLY IF** [Secure Boot](https://wiki.debian.org/SecureBoot) is enabled on your system. Please see [this guide](https://github.com/dell/dkms?tab=readme-ov-file#secure-boot) for details.
+7. Enroll the MOK (Machine Owner Key). This is needed **ONLY IF** [Secure Boot](https://wiki.debian.org/SecureBoot) is enabled in your system. Please see [this guide](https://github.com/dell/dkms?tab=readme-ov-file#secure-boot) for details.
 
    ```
    sudo mokutil --import /var/lib/dkms/mok.pub
@@ -76,7 +76,7 @@ git, make, gcc, kernel-headers, dkms and mokutil (dkms and mokutil are optional.
 
 For users who installed this driver via DKMS:
 
-1. Check the version of rtl8xxxu driver installed on your system.
+1. Check the version of rtl8xxxu driver installed in your system.
 
 ```
 sudo dkms status rtl8xxxu
@@ -110,7 +110,7 @@ sudo rm -f /etc/modprobe.d/rtl8xxxu_git.conf
 
 ## Note
 
-Supported linux kernel version: 5.4.x ~ 6.16.x
+Supported linux kernel version: 5.4.x ~ 6.17.x
 
 Tested with RTL8192EU on the following linux distros and it works.
 
@@ -126,7 +126,7 @@ Thanks to all the maintainers of this kernel module!
 
 Q1. How to update the driver installed via `dkms`?
 
-1. Check the version of the driver installed on your system.
+1. Check the version of the driver installed in your system.
 
 ```
 sudo dkms status rtl8xxxu
