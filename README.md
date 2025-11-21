@@ -20,7 +20,7 @@ git, make, gcc, kernel-headers, dkms and mokutil (dkms and mokutil are optional.
 
 ## Installation Guide
 
-1. If your USB Wi-Fi adapter is based on a RTL8188GU or RTL8192FU chip and you see the adapter is in "Driver CDROM Mode" when running `lsusb`, you need to install `usb_modeswitch`, a tool that can switch your Wi-Fi adapter to Wi-Fi mode.
+1. If your USB Wi-Fi adapter is based on a RTL8188GU or RTL8192FU chip and you see the adapter is in "Driver CDROM Mode" when running `lsusb`, you need to install `usb_modeswitch` (or usb-modeswitch), a tool that can switch your Wi-Fi adapter to Wi-Fi mode.
 
 2. Create a clone of this repo in your local machine
 
@@ -36,7 +36,7 @@ git, make, gcc, kernel-headers, dkms and mokutil (dkms and mokutil are optional.
 
 4. Build and install the module 
 
-   * _via DKMS (Recommended especially Secure Boot is enabled in your system)_ 
+   * _via DKMS (Recommended especially if Secure Boot is enabled in your system)_ 
 
    ```
    sudo dkms install $PWD
@@ -76,7 +76,7 @@ git, make, gcc, kernel-headers, dkms and mokutil (dkms and mokutil are optional.
 
 For users who installed this driver via DKMS:
 
-1. Check the version of rtl8xxxu driver installed in your system.
+1. Check the version of the rtl8xxxu driver installed in your system.
 
 ```
 sudo dkms status rtl8xxxu
@@ -110,7 +110,7 @@ sudo rm -f /etc/modprobe.d/rtl8xxxu_git.conf
 
 ## Note
 
-Supported linux kernel version: 5.4.x ~ 6.17.x
+Supported linux kernel version: 5.4.x ~ 6.18.x
 
 Tested with RTL8192EU on the following linux distros and it works.
 
