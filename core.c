@@ -17,7 +17,7 @@
 #include "regs.h"
 #include "rtl8xxxu.h"
 
-#define DRIVER_NAME "rtl8xxxu"
+#define DRIVER_NAME "rtl8xxxu_git"
 
 int rtl8xxxu_debug;
 static bool rtl8xxxu_dma_aggregation;
