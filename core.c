@@ -5215,10 +5215,19 @@ static void rtl8xxxu_dump_action(struct device *dev,
 	if (!(rtl8xxxu_debug & RTL8XXXU_DEBUG_ACTION))
 		return;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(7, 1, 0)
 	switch (mgmt->u.action.u.addba_resp.action_code) {
+#else
+	switch (mgmt->u.action.action_code) {
+#endif
 	case WLAN_ACTION_ADDBA_RESP:
+#if LINUX_VERSION_CODE < KERNEL_VERSION(7, 1, 0)
 		cap = le16_to_cpu(mgmt->u.action.u.addba_resp.capab);
 		timeout = le16_to_cpu(mgmt->u.action.u.addba_resp.timeout);
+#else
+		cap = le16_to_cpu(mgmt->u.action.addba_resp.capab);
+		timeout = le16_to_cpu(mgmt->u.action.addba_resp.timeout);
+#endif
 		dev_info(dev, "WLAN_ACTION_ADDBA_RESP: "
 			 "timeout %i, tid %02x, buf_size %02x, policy %02x, "
 			 "status %02x\n",
@@ -5226,11 +5235,20 @@ static void rtl8xxxu_dump_action(struct device *dev,
 			 (cap & IEEE80211_ADDBA_PARAM_TID_MASK) >> 2,
 			 (cap & IEEE80211_ADDBA_PARAM_BUF_SIZE_MASK) >> 6,
 			 (cap >> 1) & 0x1,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(7, 1, 0)
 			 le16_to_cpu(mgmt->u.action.u.addba_resp.status));
+#else
+			 le16_to_cpu(mgmt->u.action.addba_resp.status));
+#endif
 		break;
 	case WLAN_ACTION_ADDBA_REQ:
+#if LINUX_VERSION_CODE < KERNEL_VERSION(7, 1, 0)
 		cap = le16_to_cpu(mgmt->u.action.u.addba_req.capab);
 		timeout = le16_to_cpu(mgmt->u.action.u.addba_req.timeout);
+#else
+		cap = le16_to_cpu(mgmt->u.action.addba_req.capab);
+		timeout = le16_to_cpu(mgmt->u.action.addba_req.timeout);
+#endif
 		dev_info(dev, "WLAN_ACTION_ADDBA_REQ: "
 			 "timeout %i, tid %02x, buf_size %02x, policy %02x\n",
 			 timeout,
@@ -5240,7 +5258,11 @@ static void rtl8xxxu_dump_action(struct device *dev,
 		break;
 	default:
 		dev_info(dev, "action frame %02x\n",
+#if LINUX_VERSION_CODE < KERNEL_VERSION(7, 1, 0)
 			 mgmt->u.action.u.addba_resp.action_code);
+#else
+			 mgmt->u.action.action_code);
+#endif
 		break;
 	}
 }
