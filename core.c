@@ -7467,7 +7467,11 @@ static void rtl8xxxu_collect_sta_iter(void *data, struct ieee80211_sta *sta)
 	struct rtl8xxxu_iter_stas_data *iter_stas = data;
 	struct rtl8xxxu_stas_entry *stas_entry;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(7, 0, 0)
 	stas_entry = kmalloc(sizeof(*stas_entry), GFP_ATOMIC);
+#else
+	stas_entry = kmalloc_obj(*stas_entry, GFP_ATOMIC);
+#endif
 	if (!stas_entry)
 		return;
 
@@ -7525,7 +7529,11 @@ static int rtl8xxxu_start(struct ieee80211_hw *hw)
 	}
 
 	for (i = 0; i < RTL8XXXU_TX_URBS; i++) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(7, 0, 0)
 		tx_urb = kmalloc(sizeof(struct rtl8xxxu_tx_urb), GFP_KERNEL);
+#else
+		tx_urb = kmalloc_obj(struct rtl8xxxu_tx_urb, GFP_KERNEL);
+#endif	
 		if (!tx_urb) {
 			if (!i)
 				ret = -ENOMEM;
@@ -7546,7 +7554,11 @@ static int rtl8xxxu_start(struct ieee80211_hw *hw)
 	spin_unlock_irqrestore(&priv->rx_urb_lock, flags);
 
 	for (i = 0; i < RTL8XXXU_RX_URBS; i++) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(7, 0, 0)
 		rx_urb = kmalloc(sizeof(struct rtl8xxxu_rx_urb), GFP_KERNEL);
+#else
+		rx_urb = kmalloc_obj(struct rtl8xxxu_rx_urb, GFP_KERNEL);
+#endif
 		if (!rx_urb) {
 			if (!i)
 				ret = -ENOMEM;
