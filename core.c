@@ -7872,7 +7872,7 @@ static int rtl8xxxu_probe(struct usb_interface *interface,
 	int ret;
 	int untested = 1;
 
-	udev = usb_get_dev(interface_to_usbdev(interface));
+	udev = interface_to_usbdev(interface);
 
 	switch (id->idVendor) {
 	case USB_VENDOR_ID_REALTEK:
@@ -7931,10 +7931,8 @@ static int rtl8xxxu_probe(struct usb_interface *interface,
 	}
 
 	hw = ieee80211_alloc_hw(sizeof(struct rtl8xxxu_priv), &rtl8xxxu_ops);
-	if (!hw) {
-		ret = -ENOMEM;
-		goto err_put_dev;
-	}
+	if (!hw)
+		return -ENOMEM;
 
 	priv = hw->priv;
 	priv->hw = hw;
@@ -8078,8 +8076,6 @@ err_set_intfdata:
 	mutex_destroy(&priv->h2c_mutex);
 
 	ieee80211_free_hw(hw);
-err_put_dev:
-	usb_put_dev(udev);
 
 	return ret;
 }
@@ -8112,7 +8108,6 @@ static void rtl8xxxu_disconnect(struct usb_interface *interface)
 			 "Device still attached, trying to reset\n");
 		usb_reset_device(priv->udev);
 	}
-	usb_put_dev(priv->udev);
 	ieee80211_free_hw(hw);
 }
 
