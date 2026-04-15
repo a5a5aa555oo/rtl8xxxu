@@ -7532,7 +7532,7 @@ static int rtl8xxxu_start(struct ieee80211_hw *hw)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(7, 0, 0)
 		tx_urb = kmalloc(sizeof(struct rtl8xxxu_tx_urb), GFP_KERNEL);
 #else
-		tx_urb = kmalloc_obj(struct rtl8xxxu_tx_urb, GFP_KERNEL);
+		tx_urb = kmalloc_obj(struct rtl8xxxu_tx_urb);
 #endif	
 		if (!tx_urb) {
 			if (!i)
@@ -7557,7 +7557,7 @@ static int rtl8xxxu_start(struct ieee80211_hw *hw)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(7, 0, 0)
 		rx_urb = kmalloc(sizeof(struct rtl8xxxu_rx_urb), GFP_KERNEL);
 #else
-		rx_urb = kmalloc_obj(struct rtl8xxxu_rx_urb, GFP_KERNEL);
+		rx_urb = kmalloc_obj(struct rtl8xxxu_rx_urb);
 #endif
 		if (!rx_urb) {
 			if (!i)
