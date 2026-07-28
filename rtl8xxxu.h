@@ -139,7 +139,7 @@ static inline void fsleep(unsigned long usecs)
 #define RTL8XXXU_MAX_REG_POLL		500
 #define	USB_INTR_CONTENT_LENGTH		56
 
-#define RTL8XXXU_OUT_ENDPOINTS		6
+#define RTL8XXXU_OUT_ENDPOINTS		8
 
 #define REALTEK_USB_READ		0xc0
 #define REALTEK_USB_WRITE		0x40
@@ -1166,82 +1166,6 @@ struct rtl8192cu_efuse {
 	u8 customer_id;
 };
 
-
-struct rtl8192du_efuse {
-	__le16 rtl_id; //0-1
-	__le32 hpon; //LDO settings.2-5
-	__le16 clk; // Clock settings.6-7
-	u8 setestmode; // SE Test mode.8
-	u8 res0[3];	
-	__le16 vid; // SE Vendor ID.
-	__le16 did; // SE Device ID.
-	u8 endpoint_setting; //0x10
-	u8 option_setting; //0x11
-	u8 chirp_k;
-	u8 usb_phy;
-	u8 res1[6]; 
-	u8 mac0_addr[ETH_ALEN]; //0x19
-	u8 res2[58];						
-	u8 subcustomer_id; // 0x59
-	u8 res3;
-	u8 mac1_addr[ETH_ALEN]; //0x5b
-	u8 cck_tx_power_index_A[3];				// 0x61
-	u8 cck_tx_power_index_B[3];
-	u8 ht40_1s_tx_power_index_A[3];				// 0x67
-	u8 ht40_1s_tx_power_index_B[3];
-	/*
-	 * The following entries are half-bytes split as:
-	 * bits 0-3: path A, bits 4-7: path B, all values 4 bits signed
-	 */
-	struct rtl8723au_idx ht40_2s_tx_power_index_diff[3];// 0x6d
-	struct rtl8723au_idx ht20_tx_power_index_diff[3];// 0x70
-	struct rtl8723au_idx ofdm_tx_power_index_diff[3];// 0x73
-	struct rtl8723au_idx ht40_max_power_offset[3];// 0x76
-	struct rtl8723au_idx ht20_max_power_offset[3];// 0x79
-
-	u8 ht40_1s_tx_power_index_A_5gl[3];
-	u8 ht40_1s_tx_power_index_B_5gl[3];
-	struct rtl8723au_idx ht40_2s_tx_power_index_diff_5gl[3];
-	struct rtl8723au_idx ht20_tx_power_index_diff_5gl[3];
-	struct rtl8723au_idx ofdm_tx_power_index_diff_5gl[3];
-	struct rtl8723au_idx ht40_max_power_offset_5gl[3];
-	struct rtl8723au_idx ht20_max_power_offset_5gl[3];
-
-	u8 ht40_1s_tx_power_index_A_5gm[3];
-	u8 ht40_1s_tx_power_index_B_5gm[3];
-	struct rtl8723au_idx ht40_2s_tx_power_index_diff_5gm[3];
-	struct rtl8723au_idx ht20_tx_power_index_diff_5gm[3];
-	struct rtl8723au_idx ofdm_tx_power_index_diff_5gm[3];
-	struct rtl8723au_idx ht40_max_power_offset_5gm[3];
-	struct rtl8723au_idx ht20_max_power_offset_5gm[3];
-
-	u8 ht40_1s_tx_power_index_A_5gh[3];
-	u8 ht40_1s_tx_power_index_B_5gh[3];
-	struct rtl8723au_idx ht40_2s_tx_power_index_diff_5gh[3];
-	struct rtl8723au_idx ht20_tx_power_index_diff_5gh[3];
-	struct rtl8723au_idx ofdm_tx_power_index_diff_5gh[3];
-	struct rtl8723au_idx ht40_max_power_offset_5gh[3];
-	struct rtl8723au_idx ht20_max_power_offset_5gh[3];
-
-	u8 channel_plan;
-	u8 iqk_lck;
-	u8 xtal_k;
-	u8 tssi_a;
-	u8 tssi_b;
-	u8 tssi_ab;
-	u8 res4[2];
-	u8 thermal_meter;
-	u8 rf_regulatory;
-	u8 rf_option_2;
-	u8 rf_option_3;
-	u8 rf_option_4;
-	u8 rf_option_5;
-	u8 rf_option_6;
-	u8 version;
-	u8 customer_id;
-	u8 rf_option_7;
-} __attribute__((packed));
-
 struct rtl8723bu_pwr_idx {
 #ifdef __LITTLE_ENDIAN
 	int	ht20:4;
@@ -1485,53 +1409,6 @@ struct rtl8192fu_efuse {
 	u8 mac_addr[ETH_ALEN];		/* 0x107 */
 	u8 device_info[80];		/* 0x10d */
 	u8 res9[163];
-} __packed;
-
-struct rtl8192su_efuse {
-	__le16 id;				/*  0 -  1 */
-	__le16 hpon;				/*  2 -  3 */
-	__le16 clk;				/*  4 -  5 */
-	__le16 testr;				/*  6 -  7 */
-	__le16 vid;				/*  8 -  9 */
-	__le16 did;				/* 10 - 11 */
-	u8 usb_optional;			/* 12 */
-	u8 usb_phy_para1[5];			/* 13 - 17 */
-	u8 mac_addr[6];				/* 18 - 23 */
-
-	/* seems to contain vendor and device identification strings */
-	u8 unkn2[56];				/* 24 - 79 */
-
-	/* WARNING
-	 * These definitions are mostly guesswork
-	 */
-	u8 version;				/* 80 */
-	u8 channel_plan;			/* 81 */
-	u8 custom_id;				/* 82 */
-	u8 sub_custom_id;			/* 83 */
-	u8 board_type;				/* 84 */
-
-	/* tx power base */
-	u8 cck_tx_power_index_A[3];	/* 85 - 90 */
-	u8 cck_tx_power_index_B[3];	/* 85 - 90 */
-	u8 ht40_1s_tx_power_index_A[3];	/* 91 - 96 */
-	u8 ht40_1s_tx_power_index_B[3];	/* 91 - 96 */
-	u8 ht40_2s_tx_power_index_diff_A[3];	/* 97 - 102 */
-	u8 ht40_2s_tx_power_index_diff_B[3];	/* 97 - 102 */
-
-	u8 pw_diff;				/* 103 */
-	u8 thermal_meter;			/* 104 */
-	u8 crystal_cap;				/* 105 */
-	u8 unkn3;				/* 106 */
-	u8 tssi[2];			/* 107 - 108 */
-	u8 unkn4;				/* 109 */
-	u8 ht20_tx_power_index_diff[3];			/* 110 - 112 */
-	u8 ofdm_tx_power_index_diff[2];			/* 113 - 114, 124 */
-	u8 unkn5[6];				/* 115 - 120 */
-	u8 tx_pwr_group[1];			/* 121 ??? */
-	u8 regulatory;				/* 122 ??? */
-	u8 rf_ind_power_diff;			/* 123 */
-	u8 tx_pwr_ofdm_diff_cont;		/* 124 */
-	u8 unkn6[3];				/* 125 - 127 */
 } __packed;
 
 struct rtl8xxxu_reg8val {
@@ -2118,10 +1995,7 @@ struct rtl8xxxu_priv {
 	struct usb_anchor rx_anchor;
 	struct usb_anchor tx_anchor;
 	struct usb_anchor int_anchor;
-	union {
-		struct rtl8xxxu_firmware_header *fw_data;
-		struct rtl8192su_firmware_header *fw_data_8192su;
-	};
+	struct rtl8xxxu_firmware_header *fw_data;
 	size_t fw_size;
 	struct mutex usb_buf_mutex;
 	union {
@@ -2134,13 +2008,11 @@ struct rtl8xxxu_priv {
 		struct rtl8723au_efuse efuse8723;
 		struct rtl8723bu_efuse efuse8723bu;
 		struct rtl8192cu_efuse efuse8192;
-		struct rtl8192du_efuse efuse8192du;
 		struct rtl8192eu_efuse efuse8192eu;
 		struct rtl8188fu_efuse efuse8188fu;
 		struct rtl8188eu_efuse efuse8188eu;
 		struct rtl8710bu_efuse efuse8710bu;
 		struct rtl8192fu_efuse efuse8192fu;
-		struct rtl8192su_efuse efuse8192su;
 	} efuse_wifi;
 	u32 adda_backup[RTL8XXXU_ADDA_REGS];
 	u32 mac_backup[RTL8XXXU_MAC_REGS];
@@ -2409,14 +2281,29 @@ void rtl8xxxu_update_ra_report(struct rtl8xxxu_ra_report *rarpt,
 			       u8 rate, u8 sgi, u8 bw);
 void rtl8188e_ra_info_init_all(struct rtl8xxxu_ra_info *ra);
 void rtl8188e_handle_ra_tx_report2(struct rtl8xxxu_priv *priv, struct sk_buff *skb);
-int rtl8192su_download_firmware(struct rtl8xxxu_priv *priv);
+int rtl8192su_init_device(struct ieee80211_hw *hw);
+int rtl8192su_add_interface(struct ieee80211_hw *hw,
+			    struct ieee80211_vif *vif);
+void rtl8192su_bss_info_changed(struct ieee80211_hw *hw,
+				struct ieee80211_vif *vif,
+				struct ieee80211_bss_conf *bss_conf,
+				u64 changed);
+int rtl8192su_conf_tx(struct ieee80211_hw *hw, u16 queue,
+		      const struct ieee80211_tx_queue_params *param);
+void rtl8192su_configure_filter(struct ieee80211_hw *hw,
+				unsigned int *total_flags);
+void rtl8192su_sw_scan_start(struct ieee80211_hw *hw);
+void rtl8192su_sw_scan_complete(struct ieee80211_hw *hw);
+int rtl8192su_start(struct ieee80211_hw *hw);
+void rtl8192su_stop(struct ieee80211_hw *hw);
+void rtl8192su_set_ampdu_factor(struct rtl8xxxu_priv *priv,
+				u8 ampdu_factor);
 
 extern struct rtl8xxxu_fileops rtl8192fu_fops;
 extern struct rtl8xxxu_fileops rtl8710bu_fops;
 extern struct rtl8xxxu_fileops rtl8188fu_fops;
 extern struct rtl8xxxu_fileops rtl8188eu_fops;
 extern struct rtl8xxxu_fileops rtl8192cu_fops;
-extern struct rtl8xxxu_fileops rtl8192du_fops;
 extern struct rtl8xxxu_fileops rtl8192eu_fops;
 extern struct rtl8xxxu_fileops rtl8192su_fops;
 extern struct rtl8xxxu_fileops rtl8723au_fops;
