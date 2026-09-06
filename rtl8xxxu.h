@@ -139,7 +139,7 @@ static inline void fsleep(unsigned long usecs)
 #define RTL8XXXU_MAX_REG_POLL		500
 #define	USB_INTR_CONTENT_LENGTH		56
 
-#define RTL8XXXU_OUT_ENDPOINTS		6
+#define RTL8XXXU_OUT_ENDPOINTS		8
 
 #define REALTEK_USB_READ		0xc0
 #define REALTEK_USB_WRITE		0x40
@@ -204,6 +204,7 @@ static inline void fsleep(unsigned long usecs)
 enum rtl8xxxu_rtl_chip {
 	RTL8192S = 0x81920,
 	RTL8191S = 0x81910,
+	RTL8188S = 0x81880,
 	RTL8192C = 0x8192c,
 	RTL8191C = 0x8191c,
 	RTL8188C = 0x8188c,
@@ -2280,6 +2281,23 @@ void rtl8xxxu_update_ra_report(struct rtl8xxxu_ra_report *rarpt,
 			       u8 rate, u8 sgi, u8 bw);
 void rtl8188e_ra_info_init_all(struct rtl8xxxu_ra_info *ra);
 void rtl8188e_handle_ra_tx_report2(struct rtl8xxxu_priv *priv, struct sk_buff *skb);
+int rtl8192su_init_device(struct ieee80211_hw *hw);
+int rtl8192su_add_interface(struct ieee80211_hw *hw,
+			    struct ieee80211_vif *vif);
+void rtl8192su_bss_info_changed(struct ieee80211_hw *hw,
+				struct ieee80211_vif *vif,
+				struct ieee80211_bss_conf *bss_conf,
+				u64 changed);
+int rtl8192su_conf_tx(struct ieee80211_hw *hw, u16 queue,
+		      const struct ieee80211_tx_queue_params *param);
+void rtl8192su_configure_filter(struct ieee80211_hw *hw,
+				unsigned int *total_flags);
+void rtl8192su_sw_scan_start(struct ieee80211_hw *hw);
+void rtl8192su_sw_scan_complete(struct ieee80211_hw *hw);
+int rtl8192su_start(struct ieee80211_hw *hw);
+void rtl8192su_stop(struct ieee80211_hw *hw);
+void rtl8192su_set_ampdu_factor(struct rtl8xxxu_priv *priv,
+				u8 ampdu_factor);
 
 extern struct rtl8xxxu_fileops rtl8192fu_fops;
 extern struct rtl8xxxu_fileops rtl8710bu_fops;
@@ -2287,5 +2305,6 @@ extern struct rtl8xxxu_fileops rtl8188fu_fops;
 extern struct rtl8xxxu_fileops rtl8188eu_fops;
 extern struct rtl8xxxu_fileops rtl8192cu_fops;
 extern struct rtl8xxxu_fileops rtl8192eu_fops;
+extern struct rtl8xxxu_fileops rtl8192su_fops;
 extern struct rtl8xxxu_fileops rtl8723au_fops;
 extern struct rtl8xxxu_fileops rtl8723bu_fops;

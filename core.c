@@ -62,6 +62,13 @@ MODULE_PARM_DESC(dma_agg_pages, "Set DMA aggregation pages (range 1-127, 0 to di
 static int rtl8xxxu_submit_rx_urb(struct rtl8xxxu_priv *priv,
 				  struct rtl8xxxu_rx_urb *rx_urb);
 
+static inline bool rtl8xxxu_is_8192s(const struct rtl8xxxu_priv *priv)
+{
+	return priv->rtl_chip == RTL8188S ||
+	       priv->rtl_chip == RTL8191S ||
+	       priv->rtl_chip == RTL8192S;
+}
+
 static struct ieee80211_rate rtl8xxxu_rates[] = {
 	{ .bitrate = 10, .hw_value = DESC_RATE_1M, .flags = 0 },
 	{ .bitrate = 20, .hw_value = DESC_RATE_2M, .flags = 0 },
@@ -2143,6 +2150,7 @@ int rtl8xxxu_load_firmware(struct rtl8xxxu_priv *priv, const char *fw_name)
 	case 0x88f0:
 	case 0x10b0:
 	case 0x92f0:
+	case 0x8710:
 		break;
 	default:
 		ret = -EINVAL;
@@ -2661,7 +2669,7 @@ static int rtl8xxxu_init_queue_priority(struct rtl8xxxu_priv *priv)
 		bkp = bkq ^ 3;
 		bep = beq ^ 3;
 		vip = viq ^ 3;
-		vop = viq ^ 3;
+		vop = voq ^ 3;
 		break;
 	default:
 		ret = -EINVAL;
@@ -3613,6 +3621,11 @@ rtl8xxxu_set_ampdu_factor(struct rtl8xxxu_priv *priv, u8 ampdu_factor)
 	u8 max_agg = 0xf;
 	int i;
 
+	if (rtl8xxxu_is_8192s(priv)) {
+		rtl8192su_set_ampdu_factor(priv, ampdu_factor);
+		return;
+	}
+
 	ampdu_factor = 1 << (ampdu_factor + 2);
 	if (ampdu_factor > max_agg)
 		ampdu_factor = max_agg;
@@ -3631,6 +3644,14 @@ rtl8xxxu_set_ampdu_factor(struct rtl8xxxu_priv *priv, u8 ampdu_factor)
 static void rtl8xxxu_set_ampdu_min_space(struct rtl8xxxu_priv *priv, u8 density)
 {
 	u8 val8;
+
+	if (rtl8xxxu_is_8192s(priv)) {
+		val8 = rtl8xxxu_read8(priv, 0x237);
+		val8 &= 0xf8;
+		val8 |= min_t(u8, density, 5);
+		rtl8xxxu_write8(priv, 0x237, val8);
+		return;
+	}
 
 	val8 = rtl8xxxu_read8(priv, REG_AMPDU_MIN_SPACE);
 	val8 &= 0xf8;
@@ -3968,6 +3989,9 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 	u8 val8;
 	u16 val16;
 	u32 val32;
+
+	if (rtl8xxxu_is_8192s(priv))
+		return rtl8192su_init_device(hw);
 
 	/* Check if MAC is already powered on */
 	val8 = rtl8xxxu_read8(priv, REG_CR);
@@ -4530,6 +4554,11 @@ static void rtl8xxxu_sw_scan_start(struct ieee80211_hw *hw,
 	struct rtl8xxxu_priv *priv = hw->priv;
 	u8 val8;
 
+	if (rtl8xxxu_is_8192s(priv)) {
+		rtl8192su_sw_scan_start(hw);
+		return;
+	}
+
 	val8 = rtl8xxxu_read8(priv, REG_BEACON_CTRL);
 	val8 |= BEACON_DISABLE_TSF_UPDATE;
 	rtl8xxxu_write8(priv, REG_BEACON_CTRL, val8);
@@ -4540,6 +4569,11 @@ static void rtl8xxxu_sw_scan_complete(struct ieee80211_hw *hw,
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	u8 val8;
+
+	if (rtl8xxxu_is_8192s(priv)) {
+		rtl8192su_sw_scan_complete(hw);
+		return;
+	}
 
 	val8 = rtl8xxxu_read8(priv, REG_BEACON_CTRL);
 	val8 &= ~BEACON_DISABLE_TSF_UPDATE;
@@ -4925,6 +4959,11 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	u32 val32;
 
 	rarpt = &priv->ra_report;
+
+	if (rtl8xxxu_is_8192s(priv)) {
+		rtl8192su_bss_info_changed(hw, vif, bss_conf, changed);
+		return;
+	}
 
 	if (changed & BSS_CHANGED_ASSOC) {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
@@ -5681,7 +5720,8 @@ static void rtl8xxxu_tx(struct ieee80211_hw *hw,
 	priv->fops->fill_txdesc(hw, hdr, tx_info, tx_desc, sgi, short_preamble,
 				ampdu_enable, rts_rate, macid);
 
-	rtl8xxxu_calc_tx_desc_csum(tx_desc);
+	if (!rtl8xxxu_is_8192s(priv))
+		rtl8xxxu_calc_tx_desc_csum(tx_desc);
 
 	/* avoid zero checksum make tx hang */
 	if (priv->rtl_chip == RTL8710B || priv->rtl_chip == RTL8192F)
@@ -5689,6 +5729,8 @@ static void rtl8xxxu_tx(struct ieee80211_hw *hw,
 
 	usb_fill_bulk_urb(&tx_urb->urb, priv->udev, priv->pipe_out[queue],
 			  skb->data, skb->len, rtl8xxxu_tx_complete, skb);
+	if (rtl8xxxu_is_8192s(priv))
+		tx_urb->urb.transfer_flags |= URB_ZERO_PACKET;
 
 	usb_anchor_urb(&tx_urb->urb, &priv->tx_anchor);
 	ret = usb_submit_urb(&tx_urb->urb, GFP_ATOMIC);
@@ -6868,6 +6910,9 @@ static int rtl8xxxu_add_interface(struct ieee80211_hw *hw,
 	int port_num;
 	u8 val8;
 
+	if (rtl8xxxu_is_8192s(priv))
+		return rtl8192su_add_interface(hw, vif);
+
 	if (!priv->vifs[0])
 		port_num = 0;
 	else if (!priv->vifs[1])
@@ -6994,6 +7039,9 @@ static int rtl8xxxu_conf_tx(struct ieee80211_hw *hw,
 	u32 val32;
 	u8 aifs, acm_ctrl, acm_bit;
 
+	if (rtl8xxxu_is_8192s(priv))
+		return rtl8192su_conf_tx(hw, queue, param);
+
 	aifs = param->aifs;
 
 	val32 = aifs |
@@ -7043,6 +7091,11 @@ static void rtl8xxxu_configure_filter(struct ieee80211_hw *hw,
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	u32 rcr = priv->regrcr;
+
+	if (rtl8xxxu_is_8192s(priv)) {
+		rtl8192su_configure_filter(hw, total_flags);
+		return;
+	}
 
 	dev_dbg(&priv->udev->dev, "%s: changed_flags %08x, total_flags %08x\n",
 		__func__, changed_flags, *total_flags);
@@ -7128,6 +7181,9 @@ static int rtl8xxxu_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 	u16 val16;
 	u32 val32;
 	int retval = -EOPNOTSUPP;
+
+	if (rtl8xxxu_is_8192s(priv))
+		return -EOPNOTSUPP;
 
 	dev_dbg(dev, "%s: cmd %02x, cipher %08x, index %i\n",
 		__func__, cmd, key->cipher, key->keyidx);
@@ -7638,8 +7694,20 @@ static int rtl8xxxu_start(struct ieee80211_hw *hw)
 		}
 	}
 
-	schedule_delayed_work(&priv->ra_watchdog, 2 * HZ);
+	if (rtl8xxxu_is_8192s(priv)) {
+		if (ret)
+			goto error_out;
+
+		ret = rtl8192su_start(hw);
+		if (ret)
+			goto error_out;
+	} else {
+		schedule_delayed_work(&priv->ra_watchdog, 2 * HZ);
+	}
 exit:
+	if (rtl8xxxu_is_8192s(priv))
+		return ret;
+
 	/*
 	 * Accept all data and mgmt frames
 	 */
@@ -7653,6 +7721,11 @@ exit:
 
 error_out:
 	rtl8xxxu_free_tx_resources(priv);
+	if (rtl8xxxu_is_8192s(priv)) {
+		rtl8192su_stop(hw);
+		return ret;
+	}
+
 	/*
 	 * Disable all data and mgmt frames
 	 */
@@ -7671,10 +7744,13 @@ static void rtl8xxxu_stop(struct ieee80211_hw *hw)
 	struct rtl8xxxu_priv *priv = hw->priv;
 	unsigned long flags;
 
-	rtl8xxxu_write8(priv, REG_TXPAUSE, 0xff);
-
-	rtl8xxxu_write16(priv, REG_RXFLTMAP0, 0x0000);
-	rtl8xxxu_write16(priv, REG_RXFLTMAP2, 0x0000);
+	if (rtl8xxxu_is_8192s(priv)) {
+		rtl8192su_stop(hw);
+	} else {
+		rtl8xxxu_write8(priv, REG_TXPAUSE, 0xff);
+		rtl8xxxu_write16(priv, REG_RXFLTMAP0, 0x0000);
+		rtl8xxxu_write16(priv, REG_RXFLTMAP2, 0x0000);
+	}
 
 	spin_lock_irqsave(&priv->rx_urb_lock, flags);
 	priv->shutdown = true;
@@ -7685,7 +7761,8 @@ static void rtl8xxxu_stop(struct ieee80211_hw *hw)
 	if (priv->usb_interrupts)
 		usb_kill_anchored_urbs(&priv->int_anchor);
 
-	rtl8xxxu_write8(priv, REG_TXPAUSE, 0xff);
+	if (!rtl8xxxu_is_8192s(priv))
+		rtl8xxxu_write8(priv, REG_TXPAUSE, 0xff);
 
 	priv->fops->disable_rf(priv);
 
@@ -8068,7 +8145,10 @@ static int rtl8xxxu_probe(struct usb_interface *interface,
 
 	sband = &rtl8xxxu_supported_band;
 	sband->ht_cap.ht_supported = true;
-	sband->ht_cap.ampdu_factor = IEEE80211_HT_MAX_AMPDU_64K;
+	if (rtl8xxxu_is_8192s(priv))
+		sband->ht_cap.ampdu_factor = IEEE80211_HT_MAX_AMPDU_32K;
+	else
+		sband->ht_cap.ampdu_factor = IEEE80211_HT_MAX_AMPDU_64K;
 	sband->ht_cap.ampdu_density = IEEE80211_HT_MPDU_DENSITY_16;
 	sband->ht_cap.cap = IEEE80211_HT_CAP_SGI_20;
 
@@ -8085,6 +8165,12 @@ static int rtl8xxxu_probe(struct usb_interface *interface,
 	if (priv->rf_paths > 1)
 		sband->ht_cap.mcs.rx_mask[1] = 0xff;
 	sband->ht_cap.mcs.tx_params = IEEE80211_HT_MCS_TX_DEFINED;
+	if (rtl8xxxu_is_8192s(priv) &&
+	    priv->tx_paths != priv->rx_paths)
+		sband->ht_cap.mcs.tx_params |=
+			IEEE80211_HT_MCS_TX_RX_DIFF |
+			((priv->tx_paths - 1) <<
+			 IEEE80211_HT_MCS_TX_MAX_STREAMS_SHIFT);
 
 	hw->wiphy->bands[NL80211_BAND_2GHZ] = sband;
 
@@ -8095,6 +8181,8 @@ static int rtl8xxxu_probe(struct usb_interface *interface,
 
 	hw->extra_tx_headroom = priv->fops->tx_desc_size;
 	ieee80211_hw_set(hw, SIGNAL_DBM);
+	if (rtl8xxxu_is_8192s(priv))
+		ieee80211_hw_set(hw, RX_INCLUDES_FCS);
 
 	/*
 	 * The firmware handles rate control, except for RTL8188EU,
@@ -8257,6 +8345,9 @@ static const struct usb_device_id dev_table[] = {
 /* D-Link AN3U rev. A1 */
 {USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x3328, 0xff, 0xff, 0xff),
 	.driver_info = (unsigned long)&rtl8192fu_fops},
+{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8172, 0xff, 0xff, 0xff),
+	.driver_info = (unsigned long)&rtl8192su_fops},
+
 #ifdef CONFIG_RTL8XXXU_UNTESTED
 /* Still supported by rtlwifi */
 {USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8176, 0xff, 0xff, 0xff),
