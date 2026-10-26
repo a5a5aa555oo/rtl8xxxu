@@ -116,6 +116,12 @@ Tested with RTL8192EU on the following linux distros and it works.
 
 * Arch Linux  (kernel version: 6.12.12-1-lts / 6.6.62-1-lts)
 
+* AlmaLinux 10.2 (kernel version: 6.12.0-211.7.3.el10_2)
+
+  This kernel backports the 6.17 `ieee80211_ops` radio index changes, so the driver
+  needs the matching prototypes. The Makefile detects RHEL-family releases 10.2 and
+  newer and handles this automatically.
+
 * Debian 11.10 (kernel version: 5.10.0-33-amd64 / 6.1.0-0.deb11.21-amd64)
 
 * Linux Mint 20.3 (kernel version: 5.4.0-216-generic / 5.15.0-139-generic)

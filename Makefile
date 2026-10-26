@@ -1,5 +1,19 @@
 # SPDX-License-Identifier: GPL-2.0-only
 
+RHEL_VER := $(shell echo `grep '^ID_LIKE'  /etc/os-release |grep -qi 'fedora' && grep '^VERSION_ID' /etc/os-release | awk -F'[.=\"]' '{printf("%02d%02d", $$3, $$4)}'`)
+ifdef RHEL_VER
+EXTRA_CFLAGS += -DRHEL8
+ifeq ($(shell test $(RHEL_VER) -ge 0905; echo $$?),0)
+EXTRA_CFLAGS += -DRHEL95
+endif
+ifeq ($(shell test $(RHEL_VER) -ge 0906; echo $$?),0)
+EXTRA_CFLAGS += -DRHEL96
+endif
+ifeq ($(shell test $(RHEL_VER) -ge 1002; echo $$?),0)
+EXTRA_CFLAGS += -DRHEL102
+endif
+endif
+
 ifneq ($(KERNELRELEASE),)
 
 obj-m	:= rtl8xxxu_git.o

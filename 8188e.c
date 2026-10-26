@@ -1870,6 +1870,8 @@ struct rtl8xxxu_fileops rtl8188eu_fops = {
 	.max_sec_cam_num = 32,
 	.adda_1t_init = 0x0b1b25a0,
 	.adda_1t_path_on = 0x0bdb25a0,
+	.supports_ap = 1,
+	.max_macid_num = 128,
 	/*
 	 * Use 9K for 8188e normal chip
 	 * Max RX buffer = 10K - max(TxReportSize(64*8), WOLPattern(16*24))

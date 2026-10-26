@@ -4499,7 +4499,7 @@ static void rtl8xxxu_cam_write(struct rtl8xxxu_priv *priv,
 }
 
 static
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 17, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 17, 0) && !defined(RHEL102)
 int rtl8xxxu_get_antenna(struct ieee80211_hw *hw, u32 *tx_ant, u32 *rx_ant)
 #else
 int rtl8xxxu_get_antenna(struct ieee80211_hw *hw, int radio_idx, u32 *tx_ant,
@@ -4514,12 +4514,19 @@ int rtl8xxxu_get_antenna(struct ieee80211_hw *hw, int radio_idx, u32 *tx_ant,
 	return 0;
 }
 
+#define RTL8XXXU_TIM_UPDATE_DELAY_MS	10
+
 static int rtl8xxxu_set_tim(struct ieee80211_hw *hw, struct ieee80211_sta *sta,
 			    bool set)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 
-	schedule_delayed_work(&priv->update_beacon_work, 0);
+	/*
+	 * TIM changes come in bursts. Delay the download a bit so they
+	 * get merged into one beacon update.
+	 */
+	schedule_delayed_work(&priv->update_beacon_work,
+			      msecs_to_jiffies(RTL8XXXU_TIM_UPDATE_DELAY_MS));
 
 	return 0;
 }
@@ -4782,7 +4789,7 @@ rtl8xxxu_wireless_mode(struct ieee80211_hw *hw, struct ieee80211_sta *sta)
 	u16 network_type = WIRELESS_MODE_UNKNOWN;
 
 	if (hw->conf.chandef.chan->band == NL80211_BAND_5GHZ) {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)) || defined(RHEL95)
 		if (sta->deflink.vht_cap.vht_supported)
 			network_type = WIRELESS_MODE_AC;
 		else if (sta->deflink.ht_cap.ht_supported)
@@ -4796,7 +4803,7 @@ rtl8xxxu_wireless_mode(struct ieee80211_hw *hw, struct ieee80211_sta *sta)
 
 		network_type |= WIRELESS_MODE_A;
 	} else {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)) || defined(RHEL95)
 		if (sta->deflink.vht_cap.vht_supported)
 			network_type = WIRELESS_MODE_AC;
 		else if (sta->deflink.ht_cap.ht_supported)
@@ -4909,7 +4916,7 @@ void rtl8xxxu_update_ra_report(struct rtl8xxxu_ra_report *rarpt,
 
 static void
 rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)) || defined(RHEL95)
 			  struct ieee80211_bss_conf *bss_conf, u64 changed)
 #else
 			  struct ieee80211_bss_conf *bss_conf, u32 changed)
@@ -4927,7 +4934,7 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	rarpt = &priv->ra_report;
 
 	if (changed & BSS_CHANGED_ASSOC) {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)) || defined(RHEL95)
 		dev_dbg(dev, "Changed ASSOC: %i!\n", vif->cfg.assoc);
 #else
 		dev_dbg(dev, "Changed ASSOC: %i!\n", bss_conf->assoc);
@@ -4935,7 +4942,7 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 		rtl8xxxu_set_linktype(priv, vif->type, rtlvif->port_num);
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)) || defined(RHEL95)
 		if (vif->cfg.assoc) {
 #else
 		if (bss_conf->assoc) {
@@ -4955,7 +4962,7 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 			}
 			macid = rtl8xxxu_get_macid(priv, sta);
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)) || defined(RHEL95)
 			if (sta->deflink.ht_cap.ht_supported)
 				dev_info(dev, "%s: HT supported\n", __func__);
 			if (sta->deflink.vht_cap.vht_supported)
@@ -4968,7 +4975,7 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 #endif
 
 			/* TODO: Set bits 28-31 for rate adaptive id */
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)) || defined(RHEL95)
 			ramask = (sta->deflink.supp_rates[0] & 0xfff) |
 				sta->deflink.ht_cap.mcs.rx_mask[0] << 12 |
 				sta->deflink.ht_cap.mcs.rx_mask[1] << 20;
@@ -4978,7 +4985,7 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 				sta->ht_cap.mcs.rx_mask[1] << 20;
 #endif
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)) || defined(RHEL95)
 			if (sta->deflink.ht_cap.cap &
 #else
 			if (sta->ht_cap.cap &
@@ -4987,7 +4994,7 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 				sgi = 1;
 
 			highest_rate = fls(ramask) - 1;
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)) || defined(RHEL95)
 			if (sta->deflink.ht_cap.cap & IEEE80211_HT_CAP_SUP_WIDTH_20_40)
 #else
 			if (sta->ht_cap.cap & IEEE80211_HT_CAP_SUP_WIDTH_20_40)
@@ -5012,7 +5019,7 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 			/* joinbss sequence */
 			rtl8xxxu_write16(priv, REG_BCN_PSR_RPT,
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)) || defined(RHEL95)
 					 0xc000 | vif->cfg.aid);
 #else
 					 0xc000 | bss_conf->aid);
@@ -5078,7 +5085,7 @@ error:
 	return;
 }
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)) || defined(RHEL95)
 static int rtl8xxxu_start_ap(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 			     struct ieee80211_bss_conf *link_conf)
 #else
@@ -5628,7 +5635,7 @@ static void rtl8xxxu_tx(struct ieee80211_hw *hw,
 	/* (tx_info->flags & IEEE80211_TX_CTL_AMPDU) && */
 	ampdu_enable = false;
 	if (ieee80211_is_data_qos(hdr->frame_control) && sta) {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)) || defined(RHEL95)
 		if (sta->deflink.ht_cap.ht_supported) {
 #else
 		if (sta->ht_cap.ht_supported) {
@@ -5637,7 +5644,7 @@ static void rtl8xxxu_tx(struct ieee80211_hw *hw,
 			u8 *qc = ieee80211_get_qos_ctl(hdr);
 			u8 tid = qc[0] & IEEE80211_QOS_CTL_TID_MASK;
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)) || defined(RHEL95)
 			ampdu = (u32)sta->deflink.ht_cap.ampdu_density;
 #else
 			ampdu = (u32)sta->ht_cap.ampdu_density;
@@ -5655,7 +5662,7 @@ static void rtl8xxxu_tx(struct ieee80211_hw *hw,
 	}
 
 	if (ieee80211_is_data_qos(hdr->frame_control) &&
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)) || defined(RHEL95)
 	    sta && sta->deflink.ht_cap.cap &
 #else
 	    sta && sta->ht_cap.cap &
@@ -5702,42 +5709,72 @@ error:
 	dev_kfree_skb(skb);
 }
 
+/*
+ * A beacon download that lands a few ms before TBTT can be dropped by the
+ * chip: the URB completes but BCN_VALID never gets set. Downloading the
+ * beacon again after that works, so retry a few times.
+ */
+#define RTL8XXXU_BCN_DL_ATTEMPTS	5
+#define RTL8XXXU_BCN_VALID_TIMEOUT_US	5000
+
 static void rtl8xxxu_send_beacon_frame(struct ieee80211_hw *hw,
 				       struct ieee80211_vif *vif)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
-	struct sk_buff *skb = ieee80211_beacon_get(hw, vif, 0);
-#else
-	struct sk_buff *skb = ieee80211_beacon_get(hw, vif);
-#endif
 	struct device *dev = &priv->udev->dev;
-	int retry;
+	struct sk_buff *skb, *tx_skb;
+	int attempt;
+	int ret;
 	u8 val8;
 
-	/* BCN_VALID, write 1 to clear, cleared by SW */
-	val8 = rtl8xxxu_read8(priv, REG_TDECTRL + 2);
-	val8 |= BIT_BCN_VALID >> 16;
-	rtl8xxxu_write8(priv, REG_TDECTRL + 2, val8);
+	/*
+	 * Get the beacon once: ieee80211_beacon_get() advances the CSA and
+	 * DTIM counters, so retries send copies of the same frame.
+	 */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)) || defined(RHEL95)
+	skb = ieee80211_beacon_get(hw, vif, 0);
+#else
+	skb = ieee80211_beacon_get(hw, vif);
+#endif
+	if (!skb)
+		return;
 
-	/* SW_BCN_SEL - Port0 */
-	val8 = rtl8xxxu_read8(priv, REG_DWBCN1_CTRL_8723B + 2);
-	val8 &= ~(BIT_SW_BCN_SEL >> 16);
-	rtl8xxxu_write8(priv, REG_DWBCN1_CTRL_8723B + 2, val8);
+	for (attempt = 0; attempt < RTL8XXXU_BCN_DL_ATTEMPTS; attempt++) {
+		tx_skb = skb_copy(skb, GFP_KERNEL);
+		if (!tx_skb) {
+			dev_kfree_skb(skb);
+			dev_err(dev, "%s: Failed to copy beacon\n", __func__);
+			return;
+		}
 
-	if (skb)
-		rtl8xxxu_tx(hw, NULL, skb);
-
-	retry = 100;
-	do {
+		/* BCN_VALID, write 1 to clear, cleared by SW */
 		val8 = rtl8xxxu_read8(priv, REG_TDECTRL + 2);
-		if (val8 & (BIT_BCN_VALID >> 16))
-			break;
-		usleep_range(10, 20);
-	} while (--retry);
+		val8 |= BIT_BCN_VALID >> 16;
+		rtl8xxxu_write8(priv, REG_TDECTRL + 2, val8);
 
-	if (!retry)
-		dev_err(dev, "%s: Failed to read beacon valid bit\n", __func__);
+		/* SW_BCN_SEL - Port0 */
+		val8 = rtl8xxxu_read8(priv, REG_DWBCN1_CTRL_8723B + 2);
+		val8 &= ~(BIT_SW_BCN_SEL >> 16);
+		rtl8xxxu_write8(priv, REG_DWBCN1_CTRL_8723B + 2, val8);
+
+		rtl8xxxu_tx(hw, NULL, tx_skb);
+
+		ret = read_poll_timeout(rtl8xxxu_read8, val8,
+					val8 & (BIT_BCN_VALID >> 16),
+					200, RTL8XXXU_BCN_VALID_TIMEOUT_US, false,
+					priv, REG_TDECTRL + 2);
+		if (!ret) {
+			if (attempt)
+				dev_dbg(dev, "%s: beacon valid after %d retries\n",
+					__func__, attempt);
+			dev_kfree_skb(skb);
+			return;
+		}
+	}
+
+	dev_kfree_skb(skb);
+	dev_err(dev, "%s: Failed to read beacon valid bit after %d attempts\n",
+		__func__, attempt);
 }
 
 static void rtl8xxxu_update_beacon_work_callback(struct work_struct *work)
@@ -5752,13 +5789,13 @@ static void rtl8xxxu_update_beacon_work_callback(struct work_struct *work)
 		return;
 	}
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 2))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 2)) || defined(RHEL95)
 	if (vif->bss_conf.csa_active) {
 #else
 	if (vif->csa_active) {
 #endif
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0)) || defined(RHEL95)
 		if (ieee80211_beacon_cntdwn_is_complete(vif, 0)) {
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0))
 		if (ieee80211_beacon_cntdwn_is_complete(vif)) {
@@ -5766,7 +5803,7 @@ static void rtl8xxxu_update_beacon_work_callback(struct work_struct *work)
 		if (ieee80211_csa_is_complete(vif)) {
 #endif
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0)) || defined(RHEL95)
 			ieee80211_csa_finish(vif, 0);
 #else
 			ieee80211_csa_finish(vif);
@@ -5785,7 +5822,7 @@ static inline bool rtl8xxxu_is_packet_match_bssid(struct rtl8xxxu_priv *priv,
 {
 	return priv->vifs[port_num] &&
 	       priv->vifs[port_num]->type == NL80211_IFTYPE_STATION &&
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)) || defined(RHEL95)
 	       priv->vifs[port_num]->cfg.assoc &&
 #else
 	       priv->vifs[port_num]->bss_conf.assoc &&
@@ -5795,7 +5832,7 @@ static inline bool rtl8xxxu_is_packet_match_bssid(struct rtl8xxxu_priv *priv,
 
 static inline bool rtl8xxxu_is_sta_sta(struct rtl8xxxu_priv *priv)
 {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)) || defined(RHEL95)
 	return (priv->vifs[0] && priv->vifs[0]->cfg.assoc &&
 		priv->vifs[0]->type == NL80211_IFTYPE_STATION) &&
 	       (priv->vifs[1] && priv->vifs[1]->cfg.assoc &&
@@ -6155,7 +6192,7 @@ void rtl8723bu_update_bt_link_info(struct rtl8xxxu_priv *priv, u8 bt_info)
 
 static inline bool rtl8xxxu_is_assoc(struct rtl8xxxu_priv *priv)
 {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)) || defined(RHEL95)
 	return (priv->vifs[0] && priv->vifs[0]->cfg.assoc) ||
 	       (priv->vifs[1] && priv->vifs[1]->cfg.assoc);
 #else
@@ -6935,7 +6972,7 @@ static void rtl8xxxu_remove_interface(struct ieee80211_hw *hw,
 	priv->vifs[rtlvif->port_num] = NULL;
 }
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 17, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 17, 0) && !defined(RHEL102)
 static int rtl8xxxu_config(struct ieee80211_hw *hw, u32 changed)
 #else
 static int rtl8xxxu_config(struct ieee80211_hw *hw, int radio_idx, u32 changed)
@@ -6977,7 +7014,7 @@ exit:
 	return ret;
 }
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)) || defined(RHEL95)
 static int rtl8xxxu_conf_tx(struct ieee80211_hw *hw,
 			    struct ieee80211_vif *vif,
 			    unsigned int link_id, u16 queue,
@@ -7095,7 +7132,7 @@ static void rtl8xxxu_configure_filter(struct ieee80211_hw *hw,
 			 FIF_PROBE_REQ);
 }
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 17, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 17, 0) && !defined(RHEL102)
 static int rtl8xxxu_set_rts_threshold(struct ieee80211_hw *hw, u32 rts)
 #else
 static int rtl8xxxu_set_rts_threshold(struct ieee80211_hw *hw, int radio_idx,
@@ -7214,7 +7251,7 @@ rtl8xxxu_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	switch (action) {
 	case IEEE80211_AMPDU_TX_START:
 		dev_dbg(dev, "%s: IEEE80211_AMPDU_TX_START\n", __func__);
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)) || defined(RHEL95)
 		ampdu_factor = sta->deflink.ht_cap.ampdu_factor;
 		ampdu_density = sta->deflink.ht_cap.ampdu_density;
 #else
@@ -7314,7 +7351,7 @@ static void rtl8xxxu_refresh_rate_mask(struct rtl8xxxu_priv *priv,
 		int sgi = 0;
 		u32 rate_bitmap = 0;
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)) || defined(RHEL95)
 		rate_bitmap = (sta->deflink.supp_rates[0] & 0xfff) |
 				(sta->deflink.ht_cap.mcs.rx_mask[0] << 12) |
 				(sta->deflink.ht_cap.mcs.rx_mask[1] << 20);
@@ -7662,7 +7699,7 @@ error_out:
 	return ret;
 }
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)) || defined(RHEL96)
 static void rtl8xxxu_stop(struct ieee80211_hw *hw, bool suspend)
 #else
 static void rtl8xxxu_stop(struct ieee80211_hw *hw)
@@ -7756,14 +7793,14 @@ static int rtl8xxxu_sta_remove(struct ieee80211_hw *hw,
 }
 
 static const struct ieee80211_ops rtl8xxxu_ops = {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0)) || defined(RHEL95)
 	.add_chanctx = ieee80211_emulate_add_chanctx,
 	.remove_chanctx = ieee80211_emulate_remove_chanctx,
 	.change_chanctx = ieee80211_emulate_change_chanctx,
 	.switch_vif_chanctx = ieee80211_emulate_switch_vif_chanctx,
 #endif
 	.tx = rtl8xxxu_tx,
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 2, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 2, 0)) || defined(RHEL95)
 	.wake_tx_queue = ieee80211_handle_wake_tx_queue,
 #endif
 	.add_interface = rtl8xxxu_add_interface,
